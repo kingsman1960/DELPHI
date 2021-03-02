@@ -59,7 +59,7 @@ with open(arguments.run_config, "r") as ymlfile:
 USER_RUNNING = RUN_CONFIG["arguments"]["user"]
 end_date = RUN_CONFIG["arguments"]["end_date"]
 # full_raw is TRUE if we want all the states up till that date, if False just take the last date
-full_raw = bool(RUN_CONFIG["arguments"]["full_raw"])
+full_raw = bool(int(RUN_CONFIG["arguments"]["full_raw"]))
 
 PATH_TO_FOLDER_DANGER_MAP = CONFIG_FILEPATHS["danger_map"][USER_RUNNING]
 PATH_TO_DATA_SANDBOX = CONFIG_FILEPATHS["data_sandbox"][USER_RUNNING]
@@ -435,4 +435,4 @@ if __name__ == "__main__":
             pool.join()
 
         df_predicted_states = pd.DataFrame(list_predicted_state_dicts)
-        df_predicted_states.to_csv(PATH_TO_DATA_SANDBOX + f'predicted/raw_predictions/Predicted_model_state_V4_{fitting_start_date}.csv', index=False)
+        df_predicted_states.to_csv(PATH_TO_DATA_SANDBOX + f'predicted/raw_predictions/Predicted_model_state_V4_{end_date}.csv', index=False)
