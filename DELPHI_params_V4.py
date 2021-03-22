@@ -1,9 +1,10 @@
 # Authors: Hamza Tazi Bouardi (htazi@mit.edu), Michael L. Li (mlli@mit.edu), Omar Skali Lami (oskali@mit.edu)
 from datetime import datetime
+from datetime import date
 
 # Default parameters - TNC & Trust Region
 date_MATHEMATICA = "2020-05-07"  # Transition date from Mathematica to Python
-fitting_start_date = "2020-10-01" # date to start model fitting from. predictions of all model states on this date are needed
+fitting_start_date = "2021-01-01" # date to start model fitting from. predictions of all model states on this date are needed
 default_parameter_list = [1, 0, 2, 0.2, 0.05, 0.2, 3, 3, 0.1, 3, 1, 1] # Default parameters for the solver
 dict_default_reinit_parameters = {
     "alpha": 0, "days": None, "r_s": 0, "r_dth": 0.02, "p_dth": 0.001, "r_dthdecay": -0.2,
@@ -36,7 +37,7 @@ default_lower_bound_annealing = 1
 default_lower_bound_jump = 0
 default_upper_bound_jump = 5
 default_lower_bound_t_jump = -100
-default_upper_bound_t_jump = 150
+default_upper_bound_t_jump = (date.today() - datetime.strptime(fitting_start_date,"%Y-%m-%d").date()).days
 default_lower_bound_std_normal = 1
 default_upper_bound_std_normal = 200
 
