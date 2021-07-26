@@ -17,8 +17,8 @@ def get_bounds_params_from_pastparams(
         default_upper_bound: float, dict_default_reinit_upper_bounds: dict,
         percentage_drift_lower_bound_annealing: float, default_lower_bound_annealing: float,
         percentage_drift_upper_bound_annealing: float, default_upper_bound_annealing: float,
-        default_lower_bound_t_jump: float, default_upper_bound_t_jump: float, default_lower_bound_std_normal: float,
-        default_upper_bound_std_normal: float,
+        default_lower_bound_t_jump: float, default_upper_bound_t_jump: float, default_parameter_t_jump:float,
+        default_lower_bound_std_normal: float, default_upper_bound_std_normal: float, default_parameter_std_normal: float
 ) -> list:
     """
     Generates the lower and upper bounds of the past parameters used as warm starts for the optimization process
@@ -161,13 +161,15 @@ def get_bounds_params_from_pastparams(
         ]
         param_list_lower[9] = default_lower_bound_t_jump  # jump lower bound
         param_list_upper[9] = default_upper_bound_t_jump  # jump upper bound
+        parameter_list[9] = default_parameter_t_jump # jump parameter
+        parameter_list[10] = default_parameter_std_normal # std_normal parameter
         param_list_lower[10] = default_lower_bound_std_normal  # std_normal lower bound
         param_list_upper[10] = default_upper_bound_std_normal  # std_normal upper bound
     else:
         raise ValueError(f"Optimizer {optimizer} not supported in this implementation so can't generate bounds")
 
     bounds_params = [(lower, upper) for lower, upper in zip(param_list_lower, param_list_upper)]
-    return bounds_params
+    return parameter_list, bounds_params
 
 
 def convert_dates_us_policies(raw_date: str) -> Union[float, datetime]:

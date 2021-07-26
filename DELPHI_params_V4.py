@@ -4,18 +4,18 @@ from datetime import date
 
 # Default parameters - TNC & Trust Region
 date_MATHEMATICA = "2020-05-07"  # Transition date from Mathematica to Python
-fitting_start_date = "2021-01-01" # date to start model fitting from. predictions of all model states on this date are needed
+fitting_start_date = "2021-03-01" # date to start model fitting from. predictions of all model states on this date are needed
 default_parameter_list = [1, 0, 2, 0.2, 0.05, 0.2, 3, 3, 0.1, 3, 1, 1] # Default parameters for the solver
 dict_default_reinit_parameters = {
-    "alpha": 0, "days": None, "r_s": 0, "r_dth": 0.02, "p_dth": 0.001, "r_dthdecay": -0.2,
+    "alpha": 0, "days": None, "r_s": 0, "r_dth": 0.02, "p_dth": 0.001, "r_dthdecay": -1,
     "k1": 0, "k2": 0, "jump": 0, "t_jump": -100, "std_normal": 1, "k3": 0,
 }  # Allows for reinitialization of parameters in case they reach a value that is too low/high
 dict_default_reinit_lower_bounds = {
-    "alpha": 0, "days": None, "r_s": 0, "r_dth": 0.02, "p_dth": 0.001, "r_dthdecay": -0.2,
+    "alpha": 0, "days": None, "r_s": 0, "r_dth": 0.02, "p_dth": 0.001, "r_dthdecay": -1,
     "k1": 0, "k2": 0, "jump": 0, "t_jump": -100, "std_normal": 1, "k3": 0,
 }  # Allows for reinitialization of lower bounds in case they reach a value that is too low
 dict_default_reinit_upper_bounds = {
-    "alpha": 0, "days": None, "r_s": 0, "r_dth": 0.02, "p_dth": 0.001, "r_dthdecay": -0.2,
+    "alpha": 0, "days": None, "r_s": 0, "r_dth": 0.02, "p_dth": 0.001, "r_dthdecay": -1,
     "k1": 0, "k2": 0, "jump": 0, "t_jump": -100, "std_normal": 1, "k3": 0,
 }  # Allows for reinitialization of upper bounds in case they reach a value that is too high
 default_upper_bound = 0.2
@@ -31,14 +31,16 @@ max_iter = 500  # Maximum number of iterations for the algorithm
 
 # Default parameters - Annealing
 percentage_drift_upper_bound_annealing = 1
-default_upper_bound_annealing = 1
+default_upper_bound_annealing = 2
 percentage_drift_lower_bound_annealing = 1
-default_lower_bound_annealing = 1
+default_lower_bound_annealing = 2
 default_lower_bound_jump = 0
 default_upper_bound_jump = 5
 default_lower_bound_t_jump = 0
+default_parameter_t_jump = ((date.today() - datetime.strptime(fitting_start_date,"%Y-%m-%d").date()).days + 10) / 2
 default_upper_bound_t_jump = (date.today() - datetime.strptime(fitting_start_date,"%Y-%m-%d").date()).days + 10
 default_lower_bound_std_normal = 1
+default_parameter_std_normal = 50
 default_upper_bound_std_normal = 200
 
 # Initial condition of exposed state and infected state
@@ -47,7 +49,7 @@ RecoverID = 10
 RecoverHD = 15
 DetectD = 2
 VentilatedD = 10  # Recovery Time when Ventilated
-default_maxT = datetime(2021, 7, 15)  # Maximum timespan of prediction
+default_maxT = datetime(2021, 10, 15)  # Maximum timespan of prediction
 n_params_without_policy_params = 7  # alpha, r_dth, p_dth, a, b, k1, k2
 p_v = 0.25  # Percentage of ventilated
 p_d = 0.2  # Percentage of infection cases detected.
