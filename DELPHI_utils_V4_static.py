@@ -1852,7 +1852,7 @@ def get_initial_conditions_with_testing(params_fitted: tuple, global_params_fixe
     return x_0_cases
 
 
-def create_fitting_data_from_validcases(validcases: pd.DataFrame) -> (float, list, list):
+def create_fitting_data_from_validcases(validcases: pd.DataFrame) -> (float, float, list, list, list):
     """
     Creates the balancing coefficient (regularization coefficient between cases & deaths in cost function) as well as
     the cases and deaths data on which to be fitted
@@ -1861,14 +1861,18 @@ def create_fitting_data_from_validcases(validcases: pd.DataFrame) -> (float, lis
     """
     validcases_nondeath = validcases["case_cnt"].tolist()
     validcases_death = validcases["death_cnt"].tolist()
-    balance = validcases_nondeath[-1] / max(validcases_death[-1], 10) / 3
+    # balance = validcases_nondeath[-1] / max(validcases_death[-1], 10)
     cases_data_fit = validcases_nondeath
     deaths_data_fit = validcases_death
-    return balance, cases_data_fit, deaths_data_fit
+    weights = list(range(1, len(cases_data_fit) + 1))
+    # weights = [(x/len(cases_data_fit))**2 for x in weights]
+    balance = np.average(cases_data_fit, weights = weights) / max(np.average(deaths_data_fit, weights = weights), 10)
+    balance_total_difference = np.average(np.abs(np.array(cases_data_fit[7:])-np.array(cases_data_fit[:-7])), weights = weights[7:]) / np.average(np.abs(cases_data_fit), weights = weights)
+    return balance, balance_total_difference, cases_data_fit, deaths_data_fit, weights
 
 
 def get_residuals_value(
-        optimizer: str, balance: float, x_sol: list, cases_data_fit: list, deaths_data_fit: list, weights: list
+        optimizer: str, balance: float, x_sol: list, cases_data_fit: list, deaths_data_fit: list, weights: list, balance_total_difference: float
 ) -> float:
     """
     Obtain the value of the loss function depending on the optimizer (as it is different for global optimization using
@@ -1881,20 +1885,15 @@ def get_residuals_value(
     :param weights: time-related weights to give more importance to recent data points in the fit (in the loss function)
     :return: float, corresponding to the value of the loss function
     """
-    if optimizer in ["tnc", "trust-constr"]:
+    if optimizer in ["trust-constr"]:
         residuals_value = sum(
             np.multiply((x_sol[15, :] - cases_data_fit) ** 2, weights)
             + balance
             * balance
             * np.multiply((x_sol[14, :] - deaths_data_fit) ** 2, weights)
         )
-    elif optimizer == "annealing":
-        residuals_value = sum(
-            np.multiply((x_sol[15, :] - cases_data_fit) ** 2, weights)
-            + balance
-            * balance
-            * np.multiply((x_sol[14, :] - deaths_data_fit) ** 2, weights)
-        ) + sum(
+    elif optimizer in ["tnc", "annealing"]:
+        residuals_value =  sum(      
             np.multiply(
                 (x_sol[15, 7:] - x_sol[15, :-7] - cases_data_fit[7:] + cases_data_fit[:-7]) ** 2,
                 weights[7:],
@@ -1903,7 +1902,12 @@ def get_residuals_value(
                 (x_sol[14, 7:] - x_sol[14, :-7] - deaths_data_fit[7:] + deaths_data_fit[:-7]) ** 2,
                 weights[7:],
             )
-        )
+        ) + sum(
+            np.multiply((x_sol[15, :] - cases_data_fit) ** 2, weights)
+            + balance
+            * balance
+            * np.multiply((x_sol[14, :] - deaths_data_fit) ** 2, weights)
+        ) * balance_total_difference * balance_total_difference
     else:
         raise ValueError("Optimizer not in 'tnc', 'trust-constr' or 'annealing' so not supported")
 

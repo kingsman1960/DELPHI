@@ -34,8 +34,10 @@ from DELPHI_params_V4 import (
     default_upper_bound_annealing,
     default_lower_bound_annealing,
     default_lower_bound_t_jump,
+    default_parameter_t_jump,
     default_upper_bound_t_jump,
     default_lower_bound_std_normal,
+    default_parameter_std_normal,
     default_upper_bound_std_normal,
     default_bounds_params,
     validcases_threshold,
@@ -124,7 +126,7 @@ def solve_and_predict_area(
             if len(parameter_list_total) > 0:
                 parameter_list_line = parameter_list_total.iloc[-1, :].values.tolist()
                 parameter_list = parameter_list_line[5:]
-                bounds_params = get_bounds_params_from_pastparams(
+                parameter_list, bounds_params = get_bounds_params_from_pastparams(
                     optimizer=OPTIMIZER,
                     parameter_list=parameter_list,
                     dict_default_reinit_parameters=dict_default_reinit_parameters,
@@ -140,8 +142,10 @@ def solve_and_predict_area(
                     default_upper_bound_annealing=default_upper_bound_annealing,
                     default_lower_bound_t_jump=default_lower_bound_t_jump,
                     default_upper_bound_t_jump=default_upper_bound_t_jump,
+                    default_parameter_t_jump=default_parameter_t_jump,
                     default_lower_bound_std_normal=default_lower_bound_std_normal,
                     default_upper_bound_std_normal=default_upper_bound_std_normal,
+                    default_parameter_std_normal=default_parameter_std_normal
                 )
                 start_date = pd.to_datetime(parameter_list_line[3])
                 bounds_params = tuple(bounds_params)
@@ -166,7 +170,7 @@ def solve_and_predict_area(
                 bounds_params = tuple(bounds_params_list)
                 start_date = input_start_date
             validcases = totalcases[
-                (totalcases.date >= str(start_date))
+                (totalcases.date >= str(start_date.date()))
                 & (totalcases.date <= str((pd.to_datetime(yesterday_) + timedelta(days=1)).date()))
             ][["day_since100", "case_cnt", "death_cnt"]].reset_index(drop=True)
         else:
@@ -213,7 +217,7 @@ def solve_and_predict_area(
             """
             maxT = (default_maxT - start_date).days + 1
             t_cases = validcases["day_since100"].tolist() - validcases.loc[0, "day_since100"]
-            balance, cases_data_fit, deaths_data_fit = create_fitting_data_from_validcases(validcases)
+            balance, balance_total_difference, cases_data_fit, deaths_data_fit, weights = create_fitting_data_from_validcases(validcases)
             GLOBAL_PARAMS_FIXED = (N, R_upperbound, R_heuristic, R_0, PopulationD, PopulationI, p_d, p_h, p_v)
 
             def model_covid(
@@ -313,7 +317,7 @@ def solve_and_predict_area(
                     args=tuple(params),
                 )
                 x_sol = x_sol_total.y
-                weights = list(range(1, len(cases_data_fit) + 1))
+                # weights = list(range(1, len(cases_data_fit) + 1))
                 # weights = [(x/len(cases_data_fit))**2 for x in weights]
                 if x_sol_total.status == 0:
                     residuals_value = get_residuals_value(
@@ -322,7 +326,8 @@ def solve_and_predict_area(
                         x_sol=x_sol,
                         cases_data_fit=cases_data_fit,
                         deaths_data_fit=deaths_data_fit,
-                        weights=weights
+                        weights=weights,
+                        balance_total_difference=balance_total_difference 
                     )
                 else:
                     residuals_value = 1e16
@@ -340,6 +345,8 @@ def solve_and_predict_area(
                 output = dual_annealing(
                     residuals_totalcases, x0=parameter_list, bounds=bounds_params
                 )
+                print(f"Parameter bounds are {bounds_params}")
+                print(f"Parameter list is {parameter_list}")
             else:
                 raise ValueError("Optimizer not in 'tnc', 'trust-constr' or 'annealing' so not supported")
 
@@ -448,11 +455,11 @@ if __name__ == "__main__":
     )
     popcountries["tuple_area"] = list(zip(popcountries.Continent, popcountries.Country, popcountries.Province))
 
-    if not os.path.exists(PATH_TO_DATA_SANDBOX + f"predicted/raw_predictions/Predicted_model_state_V3_{fitting_start_date}.csv"):
+    if not os.path.exists(PATH_TO_DATA_SANDBOX + f"predicted/raw_predictions/Predicted_model_state_V4_{fitting_start_date}.csv"):
         logging.error(f"Initial model state file not found, can not train from {fitting_start_date}. Use model_V3 to train on entire data.")
         raise FileNotFoundError
     df_initial_states = pd.read_csv(
-        PATH_TO_DATA_SANDBOX + f"predicted/raw_predictions/Predicted_model_state_V3_{fitting_start_date}.csv"
+        PATH_TO_DATA_SANDBOX + f"predicted/raw_predictions/Predicted_model_state_V4_{fitting_start_date}.csv"
     )
 
     try:
@@ -477,7 +484,7 @@ if __name__ == "__main__":
         popcountries=popcountries,
         startT=fitting_start_date
     )
-    n_cpu = psutil.cpu_count(logical = False) 
+    n_cpu = psutil.cpu_count(logical = False) - 2
     logging.info(f"Number of CPUs found and used in this run: {n_cpu}")
     list_tuples = [(
         r.continent, 
@@ -486,7 +493,7 @@ if __name__ == "__main__":
         r.values[:16] if not pd.isna(r.S) else None
         ) for _, r in df_initial_states.iterrows()]
 
-#    list_tuples = [t for t in list_tuples if t[2] in ["Connecticut"]]
+    # list_tuples = [t for t in list_tuples if t[1] in ["Germany", "Poland"]]
     # , "Poland", "Belgium", "France", "Greece"]]
 
     logging.info(f"Number of areas to be fitted in this run: {len(list_tuples)}")

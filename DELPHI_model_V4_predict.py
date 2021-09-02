@@ -59,7 +59,7 @@ with open(arguments.run_config, "r") as ymlfile:
 USER_RUNNING = RUN_CONFIG["arguments"]["user"]
 end_date = RUN_CONFIG["arguments"]["end_date"]
 # full_raw is TRUE if we want all the states up till that date, if False just take the last date
-full_raw = bool(RUN_CONFIG["arguments"]["full_raw"])
+full_raw = bool(int(RUN_CONFIG["arguments"]["full_raw"]))
 
 PATH_TO_FOLDER_DANGER_MAP = CONFIG_FILEPATHS["danger_map"][USER_RUNNING]
 PATH_TO_DATA_SANDBOX = CONFIG_FILEPATHS["data_sandbox"][USER_RUNNING]
@@ -178,7 +178,7 @@ def predict_area(
             endT = default_maxT if endT is None else pd.to_datetime(endT)
             maxT = (endT - start_date).days + 1
             t_cases = validcases["day_since100"].tolist() - validcases.loc[0, "day_since100"]
-            balance, cases_data_fit, deaths_data_fit = create_fitting_data_from_validcases(validcases)
+            balance, _,  cases_data_fit, deaths_data_fit, _ = create_fitting_data_from_validcases(validcases)
             GLOBAL_PARAMS_FIXED = (N, R_upperbound, R_heuristic, R_0, PopulationD, PopulationI, p_d, p_h, p_v)
 
             def model_covid(
@@ -340,11 +340,11 @@ if __name__ == "__main__":
     )
     popcountries["tuple_area"] = list(zip(popcountries.Continent, popcountries.Country, popcountries.Province))
 
-    if not os.path.exists(PATH_TO_DATA_SANDBOX + f"predicted/raw_predictions/Predicted_model_state_V3_{fitting_start_date}.csv"):
-        logging.error(f"Initial model state file not found, can not train from {fitting_start_date}. Use model_V3 to train on entire data.")
+    if not os.path.exists(PATH_TO_DATA_SANDBOX + f"predicted/raw_predictions/Predicted_model_state_V4_{fitting_start_date}.csv"):
+        logging.error(f"Initial model state file not found, can not train from {fitting_start_date}. Use model_V4 to train on entire data.")
         raise FileNotFoundError
     df_initial_states = pd.read_csv(
-        PATH_TO_DATA_SANDBOX + f"predicted/raw_predictions/Predicted_model_state_V3_{fitting_start_date}.csv"
+        PATH_TO_DATA_SANDBOX + f"predicted/raw_predictions/Predicted_model_state_V4_{fitting_start_date}.csv"
     )
 
     try:
@@ -435,4 +435,4 @@ if __name__ == "__main__":
             pool.join()
 
         df_predicted_states = pd.DataFrame(list_predicted_state_dicts)
-        df_predicted_states.to_csv(PATH_TO_DATA_SANDBOX + f'predicted/raw_predictions/Predicted_model_state_V4_{fitting_start_date}.csv', index=False)
+        df_predicted_states.to_csv(PATH_TO_DATA_SANDBOX + f'predicted/raw_predictions/Predicted_model_state_V4_{end_date}.csv', index=False)
