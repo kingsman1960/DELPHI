@@ -1,6 +1,10 @@
 # Authors: Hamza Tazi Bouardi (htazi@mit.edu), Michael L. Li (mlli@mit.edu), Omar Skali Lami (oskali@mit.edu)
+# To run: cd C:\Users\manne\Documents\GitHub\DELPHI
+#Run model:  python DELPHI_model_V4_with_policies.py --run_config run_configs\run-config.yml
+
+
 import os
-import yaml
+import yaml 
 import logging
 import time
 import psutil
@@ -102,15 +106,17 @@ def solve_and_predict_area(
     with 3 dataframes related to that tuple_area_ (parameters df, predictions since yesterday_+1, predictions since
     first day with 100 cases) and a scipy.optimize object (OptimizeResult) that contains the predictions for all
     16 states of the model (and some other information that isn't used)
+    
     """
     time_entering = time.time()
     continent, country, province, initial_state = tuple_area_state_
+    #province = str(province)
     country_sub = country.replace(" ", "_")
-    province_sub = province.replace(" ", "_")
+    province_sub = province #.replace(" ", "_")
     print(f"starting to predict for {continent}, {country}, {province}")
-    if os.path.exists(PATH_TO_FOLDER_DANGER_MAP + f"processed/Global/Cases_{country_sub}_{province_sub}.csv"):
+    if os.path.exists(PATH_TO_FOLDER_DANGER_MAP + f"processed/Cases_{country_sub}_{province_sub}.csv"):
         totalcases = pd.read_csv(
-            PATH_TO_FOLDER_DANGER_MAP + f"processed/Global/Cases_{country_sub}_{province_sub}.csv"
+            PATH_TO_FOLDER_DANGER_MAP + f"processed/Cases_{country_sub}_{province_sub}.csv"
         )
         if totalcases.day_since100.max() < 0:
             logging.warning(
@@ -451,7 +457,7 @@ if __name__ == "__main__":
         f"generation of Confidence Intervals' flag is {GET_CONFIDENCE_INTERVALS}"
     )
     popcountries = pd.read_csv(
-        PATH_TO_FOLDER_DANGER_MAP + f"processed/Global/Population_Global.csv"
+        PATH_TO_FOLDER_DANGER_MAP + f"processed/Population_Global.csv"
     )
     popcountries["tuple_area"] = list(zip(popcountries.Continent, popcountries.Country, popcountries.Province))
 

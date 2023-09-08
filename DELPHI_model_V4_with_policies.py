@@ -1,4 +1,7 @@
 # Authors: Hamza Tazi Bouardi (htazi@mit.edu), Michael L. Li (mlli@mit.edu), Omar Skali Lami (oskali@mit.edu)
+# To run: cd C:\Users\manne\Documents\GitHub\DELPHI
+# Run model:  python DELPHI_model_V4_with_policies.py --run_config run_configs\policies-run-config.yml
+
 import pandas as pd
 import numpy as np
 from scipy.integrate import solve_ivp
@@ -42,7 +45,7 @@ PATH_TO_DATA_SANDBOX = CONFIG_FILEPATHS["data_sandbox"][USER_RUNNING]
 PATH_TO_WEBSITE_PREDICTED = CONFIG_FILEPATHS["website"][USER_RUNNING]
 policy_data_countries = read_oxford_international_policy_data(yesterday=yesterday)
 policy_data_us_only = read_policy_data_us_only(filepath_data_sandbox=CONFIG_FILEPATHS["data_sandbox"][USER_RUNNING])
-popcountries = pd.read_csv(PATH_TO_FOLDER_DANGER_MAP + f"processed/Global/Population_Global.csv")
+popcountries = pd.read_csv(PATH_TO_FOLDER_DANGER_MAP + f"processed/Population_Global.csv")
 df_initial_states = pd.read_csv(
     PATH_TO_DATA_SANDBOX + f"predicted/raw_predictions/Predicted_model_state_V3_{fitting_start_date}.csv"
 )
@@ -56,7 +59,7 @@ elif OPTIMIZER == "trust-constr":
 else:
     raise ValueError("Optimizer not supported in this implementation")
 past_parameters = pd.read_csv(
-    PATH_TO_FOLDER_DANGER_MAP + f"predicted/Parameters_{subname_parameters_file}_{yesterday}.csv"
+    PATH_TO_FOLDER_DANGER_MAP + f"predicted/Parameters/Parameters_{subname_parameters_file}_{yesterday}.csv"
 )
 if pd.to_datetime(yesterday) < pd.to_datetime(date_MATHEMATICA):
     param_MATHEMATICA = True
@@ -105,6 +108,10 @@ for continent, country, province, initial_state in list_tuples:
         dict_normalized_policy_gamma_international = dict_normalized_policy_gamma_countries.copy()
 
     country_sub = country.replace(" ", "_")
+
+    if isinstance(province, float):
+        province = str(province)
+
     province_sub = province.replace(" ", "_")
     if (
             (os.path.exists(PATH_TO_FOLDER_DANGER_MAP + f"processed/Global/Cases_{country_sub}_{province_sub}.csv"))

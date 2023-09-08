@@ -1,4 +1,7 @@
 # Authors: Hamza Tazi Bouardi (htazi@mit.edu), Michael L. Li (mlli@mit.edu), Omar Skali Lami (oskali@mit.edu)
+# To run: cd C:\Users\manne\Documents\GitHub\DELPHI
+#Run model:  python DELPHI_model_V4_with_policies.py --run_config run_configs\run-config.yml
+
 import os
 import yaml
 import logging
@@ -88,12 +91,15 @@ def predict_area(
     """
     time_entering = time.time()
     continent, country, province, initial_state = tuple_area_state_
+    #province = str(province)
     country_sub = country.replace(" ", "_")
-    province_sub = province.replace(" ", "_")
+    province = province.astype(str)
+    province_sub = province.replace(" ", "_") 
+
     print(f"starting to predict for {continent}, {country}, {province}")
-    if os.path.exists(PATH_TO_FOLDER_DANGER_MAP + f"processed/Global/Cases_{country_sub}_{province_sub}.csv"):
+    if os.path.exists(PATH_TO_FOLDER_DANGER_MAP + f"processed/Cases_{country_sub}_{province_sub}.csv"):
         totalcases = pd.read_csv(
-            PATH_TO_FOLDER_DANGER_MAP + f"processed/Global/Cases_{country_sub}_{province_sub}.csv"
+            PATH_TO_FOLDER_DANGER_MAP + f"processed/Cases_{country_sub}_{province_sub}.csv"
         )
         if totalcases.day_since100.max() < 0:
             logging.warning(
@@ -336,7 +342,7 @@ if __name__ == "__main__":
         f"The user is {USER_RUNNING}"
     )
     popcountries = pd.read_csv(
-        PATH_TO_FOLDER_DANGER_MAP + f"processed/Global/Population_Global.csv"
+        PATH_TO_FOLDER_DANGER_MAP + f"processed/Population_Global.csv"
     )
     popcountries["tuple_area"] = list(zip(popcountries.Continent, popcountries.Country, popcountries.Province))
 
